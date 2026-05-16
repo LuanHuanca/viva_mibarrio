@@ -1,0 +1,142 @@
+// VIVA Barrio — esquema MVP (PostgreSQL + Prisma)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  COMPRADOR
+  CASERITA
+}
+
+enum CuponEstado {
+  PENDIENTE
+  COMPLETADO
+  RECHAZADO
+}
+
+// ——— NextAuth ———
+
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          UserRole  @default(COMPRADOR)
+  accounts      Account[]
+  sessions      Session[]
+  tienda        KioskoTienda?
+  cupones       CuponTransaccion[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ——— Dominio VIVA Barrio ———
+
+model KioskoTienda {
+  id                       String   @id @default(cuid())
+  nombreTienda             String
+  lat                      Float
+  lng                      Float
+  zonaBarrio               String
+  clientesAtendidosCiclo   Int      @default(0)
+  metaUsuarios             Int      @default(30)
+  metaInternetAlcanzada    Boolean  @default(false)
+  cicloId                  String
+  pasarelaActiva           Boolean  @default(true)
+  whatsappDuenia           String?
+  ownerId                  String   @unique
+  owner                    User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ofertas                  ProductoOferta[]
+  cupones                  CuponTransaccion[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([pasarelaActiva])
+  @@index([cicloId])
+}
+
+model ProductoOferta {
+  id              String       @id @default(cuid())
+  tiendaId        String
+  tienda          KioskoTienda @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  nombreProducto  String
+  precioOriginal  Decimal      @db.Decimal(10, 2)
+  precioDescuento Decimal      @db.Decimal(10, 2)
+  stock           Int          @default(0)
+  activa          Boolean      @default(true)
+  cupones         CuponTransaccion[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([tiendaId, activa])
+}
+
+model CuponTransaccion {
+  id              String       @id @default(cuid())
+  ofertaId        String?
+  oferta          ProductoOferta? @relation(fields: [ofertaId], references: [id], onDelete: SetNull)
+  tiendaId        String
+  tienda          KioskoTienda @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  usuarioId       String
+  usuario         User         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  cicloId         String
+  estado          CuponEstado  @default(COMPLETADO)
+  puntoOtorgado   Boolean      @default(false)
+  qrNonce         String?
+  fechaRegistro   DateTime     @default(now())
+
+  @@index([tiendaId, cicloId, usuarioId])
+  @@index([tiendaId, cicloId])
+}
+
+model QrNonceUsado {
+  nonce     String   @id
+  expiresAt DateTime
+  usedAt    DateTime @default(now())
+
+  @@index([expiresAt])
+}

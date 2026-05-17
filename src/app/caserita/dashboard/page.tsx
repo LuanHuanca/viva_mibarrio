@@ -1,80 +1,165 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
-import { ProgressBar } from "~/components/progress-bar";
+import Image from "next/image";
+
+import { AppHeader } from "~/components/ui/app-header";
+import { ProductImage } from "~/components/ui/product-image";
+import { ButtonLink } from "~/components/ui/button";
+import { IconEdit, IconQrScan, IconWifi } from "~/components/ui/icons";
+import { graphics } from "~/lib/graphics";
 import { api } from "~/trpc/react";
 
 export default function DashboardCaseritaPage() {
-  const { data: progreso, isLoading } = api.tienda.progreso.useQuery();
-  const { data: tienda } = api.tienda.mine.useQuery();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { data: tienda, isLoading } = api.tienda.mine.useQuery();
+
+  useEffect(() => {
+    if (!isLoading && tienda === null) {
+      router.replace("/caserita/onboarding");
+    }
+  }, [isLoading, tienda, router]);
+
+  if (isLoading || !tienda) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-[#007a4d]">
+        Cargando…
+      </div>
+    );
+  }
+
+  const faltan = Math.max(0, tienda.metaUsuarios - tienda.clientesAtendidosCiclo);
+  const nombre = session?.user?.name?.split(" ")[0] ?? "Caserita";
+  const cicloLabel = formatCiclo(tienda.cicloId);
+  const pct = Math.min(
+    100,
+    Math.round((tienda.clientesAtendidosCiclo / tienda.metaUsuarios) * 100),
+  );
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-emerald-950">
-            {tienda?.nombreTienda ?? "Mi tienda"}
-          </h1>
-          <p className="text-sm text-emerald-600">{tienda?.zonaBarrio}</p>
-        </div>
-        <Link href="/" className="text-sm underline">
-          Inicio
-        </Link>
-      </header>
+    <div className="bg-viva-soft pb-6">
+      <AppHeader
+        title={tienda.nombreTienda}
+        subtitle={`¡Hola, ${nombre}! · ${tienda.zonaBarrio}`}
+        role="CASERITA"
+      />
 
-      <section className="mt-8 rounded-2xl border border-emerald-200 bg-white p-6">
-        <h2 className="font-semibold text-emerald-900">Meta internet gratis</h2>
-        {isLoading || !progreso ?
-          <p className="mt-4 text-sm">Cargando progreso…</p>
-        : <>
-            <ProgressBar
-              actual={progreso.clientesAtendidosCiclo}
-              meta={progreso.metaUsuarios}
-              label={`Ciclo ${progreso.cicloId}`}
-            />
-            {progreso.metaInternetAlcanzada && (
-              <p className="mt-4 rounded-lg bg-teal-100 p-3 text-center font-bold text-teal-900">
-                ¡Meta alcanzada! Beneficio WiFi activado
-              </p>
-            )}
-          </>
+      <section className="relative z-10 mx-4 mt-4 overflow-hidden rounded-2xl bg-white p-5 shadow-lg">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          aria-hidden
+        >
+          <Image
+            src={graphics.meta.fondoPuntos}
+            alt=""
+            fill
+            className="object-cover"
+          />
+        </div>
+        <p className="text-sm font-medium text-gray-600">
+          Meta del mes: {cicloLabel}
+        </p>
+        <div className="mt-2 flex items-end justify-between">
+          <div>
+            <p className="text-3xl font-black text-[#007a4d]">
+              {tienda.clientesAtendidosCiclo}
+              <span className="text-xl font-bold text-gray-400">
+                {" "}
+                / {tienda.metaUsuarios}
+              </span>
+            </p>
+            <p className="text-xs text-gray-500">vecinos únicos</p>
+          </div>
+          <IconWifi size={28} className="text-[#007a4d]" />
+        </div>
+        <div className="mt-3 h-3 overflow-hidden rounded-full bg-gray-100">
+          <div
+            className="h-full rounded-full bg-[#76b900] transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        {faltan > 0 ?
+          <p className="mt-3 text-center text-sm text-gray-700">
+            Faltan <strong>{faltan} vecinos</strong> para ganar{" "}
+            <strong>internet gratis en casa</strong>
+          </p>
+        : <Link
+            href="/caserita/meta"
+            className="mt-3 block text-center text-sm font-bold text-[#007a4d]"
+          >
+            ¡Meta alcanzada! Ver premio →
+          </Link>
         }
       </section>
 
-      <div className="mt-6 flex flex-col gap-3">
-        <Link
-          href="/caserita/cobrar"
-          className="rounded-xl bg-emerald-600 py-4 text-center font-bold text-white"
-        >
-          Cobrar ahora (QR dinámico)
-        </Link>
-        <Link
-          href="/caserita/onboarding"
-          className="rounded-xl border border-emerald-300 py-3 text-center text-emerald-800"
-        >
-          Editar tienda
-        </Link>
+      <div className="mt-6 space-y-3 px-4">
+        <ButtonLink href="/caserita/cobrar" fullWidth className="!flex items-center justify-center gap-2">
+          <IconQrScan size={20} /> Cobrar ahora (QR dinámico)
+        </ButtonLink>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/caserita/ofertas/nueva"
+            className="rounded-xl border-2 border-[#007a4d] bg-white py-3 text-center text-sm font-bold text-[#007a4d]"
+          >
+            Agregar oferta
+          </Link>
+          <Link
+            href="/caserita/onboarding"
+            className="flex items-center justify-center gap-1 rounded-xl border-2 border-[#007a4d] bg-white py-3 text-center text-sm font-bold text-[#007a4d]"
+          >
+            <IconEdit size={16} /> Editar tienda
+          </Link>
+        </div>
       </div>
 
-      {tienda?.ofertas && tienda.ofertas.length > 0 && (
-        <section className="mt-8">
-          <h3 className="font-semibold text-emerald-900">Ofertas activas</h3>
-          <ul className="mt-3 space-y-2">
-            {tienda.ofertas.map((o) => (
+      {tienda.ofertas.length > 0 && (
+        <section className="mt-8 px-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-bold text-gray-900">Ofertas activas</h3>
+            <Link href="/caserita/ofertas" className="text-sm font-medium text-[#007a4d]">
+              Ver todas
+            </Link>
+          </div>
+          <ul className="space-y-3">
+            {tienda.ofertas.slice(0, 3).map((o) => (
               <li
                 key={o.id}
-                className="flex justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm"
+                className="viva-card flex items-center gap-3 p-3"
               >
-                <span>{o.nombreProducto}</span>
-                <span>
-                  {String(o.precioDescuento)} Bs
-                </span>
+                <ProductImage nombre={o.nombreProducto} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-gray-900">{o.nombreProducto}</p>
+                  <p className="text-sm">
+                    <span className="text-gray-400 line-through">
+                      {String(o.precioOriginal)} Bs
+                    </span>{" "}
+                    <span className="font-bold text-[#007a4d]">
+                      {String(o.precioDescuento)} Bs
+                    </span>
+                  </p>
+                  <p className="text-right text-xs text-gray-400">Stock: {o.stock}</p>
+                </div>
               </li>
             ))}
           </ul>
         </section>
       )}
-    </main>
+    </div>
   );
+}
+
+function formatCiclo(cicloId: string): string {
+  const [y, m] = cicloId.split("-");
+  if (!y || !m) return cicloId;
+  const meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+  ];
+  const idx = parseInt(m, 10) - 1;
+  return `${meses[idx] ?? m} ${y}`;
 }

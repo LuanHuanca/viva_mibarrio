@@ -1,16 +1,29 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { PasswordInput } from "~/components/password-input";
+
+function safeCallbackUrl(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/comprador/mapa";
+  if (raw.startsWith("/api")) return "/comprador/mapa";
+  return raw;
+}
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
+  const registered = searchParams.get("registered") === "1";
+  const prefilledEmail = searchParams.get("email") ?? "";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,45 +45,62 @@ export function LoginForm() {
       return;
     }
 
-    router.push(callbackUrl);
+    const session = await getSession();
+    const isCaserita = session?.user?.role === "CASERITA";
+    const destination =
+      isCaserita ?
+        callbackUrl.startsWith("/caserita") ?
+          callbackUrl
+        : "/caserita/dashboard"
+      : callbackUrl.startsWith("/comprador") ?
+        callbackUrl
+      : "/comprador/mapa";
+
+    router.push(destination);
     router.refresh();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-emerald-900">
-          Email
+    <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+      {registered && (
+        <p className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+          Cuenta creada. Inicia sesión con tu email y contraseña.
+        </p>
+      )}
+      <Input
+        label="Correo electrónico"
+        type="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="tu@correo.com"
+      />
+      <PasswordInput
+        id="login-password"
+        label="Contraseña"
+        value={password}
+        onChange={setPassword}
+        required
+        minLength={6}
+        autoComplete="current-password"
+      />
+      <div className="flex items-center justify-between text-sm">
+        <label className="flex items-center gap-2 text-gray-600">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="rounded border-gray-300 accent-[#007a4d]"
+          />
+          Recordarme
         </label>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-emerald-900">
-          Contraseña
-        </label>
-        <input
-          type="password"
-          required
-          minLength={6}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-emerald-200 px-3 py-2"
-        />
+        <span className="text-[#007a4d]">¿Olvidaste tu contraseña?</span>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-      >
+      <Button type="submit" fullWidth disabled={loading}>
         {loading ? "Entrando…" : "Entrar"}
-      </button>
+      </Button>
+
     </form>
   );
 }

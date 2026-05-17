@@ -8,7 +8,10 @@ import { Providers } from "~/app/providers";
 export const metadata: Metadata = {
   title: "VIVA Barrio",
   description: "Descubre tiendas de barrio, paga con descuento y gana beneficios",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [
+    { rel: "icon", url: "/logo.png", type: "image/png" },
+    { rel: "apple-touch-icon", url: "/logo.png" },
+  ],
 };
 
 const geist = Geist({

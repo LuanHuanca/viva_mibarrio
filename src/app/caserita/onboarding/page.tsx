@@ -3,18 +3,21 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Button } from "~/components/ui/button";
+import { IconCheckCircle, IconMapPin } from "~/components/ui/icons";
+import { Input } from "~/components/ui/input";
+import { PageTopBar } from "~/components/ui/mobile-shell";
 import { api } from "~/trpc/react";
 
 export default function OnboardingCaseritaPage() {
   const router = useRouter();
+  const utils = api.useUtils();
   const create = api.tienda.create.useMutation();
 
   const [nombreTienda, setNombreTienda] = useState("");
   const [zonaBarrio, setZonaBarrio] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
-    null,
-  );
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   function capturarGps() {
     navigator.geolocation.getCurrentPosition(
@@ -24,7 +27,7 @@ export default function OnboardingCaseritaPage() {
           lng: pos.coords.longitude,
         });
       },
-      () => alert("No se pudo obtener la ubicación. Activa el GPS."),
+      () => alert("Activa el GPS para registrar tu tienda en el mapa."),
     );
   }
 
@@ -43,60 +46,71 @@ export default function OnboardingCaseritaPage() {
       whatsappDuenia: whatsapp || undefined,
     });
 
+    await utils.tienda.mine.invalidate();
     router.push("/caserita/dashboard");
     router.refresh();
   }
 
   return (
-    <main className="mx-auto max-w-md px-4 py-8">
-      <h1 className="text-2xl font-bold text-emerald-950">Registra tu tienda</h1>
-      <p className="mt-2 text-sm text-emerald-700">
-        Aparecerás en el mapa de los compradores del barrio.
-      </p>
+    <div className="min-h-screen bg-white">
+      <PageTopBar backHref="/caserita/dashboard" />
+      <form onSubmit={handleSubmit} className="space-y-5 px-6 py-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#004d2c]">Registra tu tienda</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Así los vecinos podrán encontrarte
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <input
+        <Input
+          label="Nombre de tu kiosko"
           required
-          placeholder="Nombre del kiosko"
           value={nombreTienda}
           onChange={(e) => setNombreTienda(e.target.value)}
-          className="w-full rounded-lg border border-emerald-200 px-3 py-2"
+          placeholder="Kiosko Lili"
         />
-        <input
+        <Input
+          label="Zona / Barrio"
           required
-          placeholder="Zona / barrio"
           value={zonaBarrio}
           onChange={(e) => setZonaBarrio(e.target.value)}
-          className="w-full rounded-lg border border-emerald-200 px-3 py-2"
+          placeholder="Villa Corona"
         />
-        <input
-          placeholder="WhatsApp (+591...)"
+        <Input
+          label="WhatsApp (opcional)"
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
-          className="w-full rounded-lg border border-emerald-200 px-3 py-2"
+          placeholder="70707070"
         />
-        <button
-          type="button"
-          onClick={capturarGps}
-          className="w-full rounded-lg border border-dashed border-emerald-400 py-3 text-emerald-800"
-        >
-          {coords ?
-            `GPS: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`
-          : "Usar mi ubicación GPS"}
-        </button>
+
+        <div>
+          <p className="text-sm font-semibold text-[#007a4d]">Ubicación</p>
+          <p className="mb-2 text-xs text-gray-500">
+            Usaremos tu ubicación para mostrarte en el mapa
+          </p>
+          <button
+            type="button"
+            onClick={capturarGps}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#007a4d] py-3.5 text-sm font-bold text-white"
+          >
+            <IconMapPin size={18} className="text-white" />
+            {coords ?
+              <span className="flex items-center gap-1.5">
+                Ubicación capturada
+                <IconCheckCircle size={16} className="text-white" />
+              </span>
+            : "Usar mi ubicación GPS"}
+          </button>
+        </div>
 
         {create.error && (
           <p className="text-sm text-red-600">{create.error.message}</p>
         )}
 
-        <button
-          type="submit"
-          disabled={create.isPending}
-          className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white"
-        >
-          {create.isPending ? "Guardando…" : "Registrar tienda"}
-        </button>
+        <Button type="submit" fullWidth disabled={create.isPending}>
+          {create.isPending ? "Guardando…" : "Guardar y continuar"}
+        </Button>
       </form>
-    </main>
+    </div>
   );
 }

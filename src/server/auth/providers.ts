@@ -1,43 +1,18 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import DiscordProvider from "next-auth/providers/discord";
 import { z } from "zod";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
-import { type UserRole } from "../../../generated/prisma";
-
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-      role: UserRole;
-      tiendaId: string | null;
-    } & DefaultSession["user"];
-  }
-
-  interface User {
-    role: UserRole;
-    tiendaId?: string | null;
-  }
-}
-
-declare module "@auth/core/jwt" {
-  interface JWT {
-    role?: UserRole;
-    tiendaId?: string | null;
-  }
-}
 
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
 
-export const authConfig = {
-  providers: [
+export function getAuthProviders() {
+  return [
     Credentials({
       name: "Email",
       credentials: {
@@ -76,35 +51,5 @@ export const authConfig = {
           }),
         ]
       : []),
-  ],
-  adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-  },
-  callbacks: {
-    jwt: async ({ token, user }) => {
-      if (user) {
-        token.role = user.role;
-        token.tiendaId = user.tiendaId ?? null;
-      }
-      if (token.sub && token.role === "CASERITA") {
-        const tienda = await db.kioskoTienda.findUnique({
-          where: { ownerId: token.sub },
-          select: { id: true },
-        });
-        token.tiendaId = tienda?.id ?? null;
-      }
-      return token;
-    },
-    session: ({ session, token }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: token.sub ?? "",
-        role: (token.role as UserRole) ?? "COMPRADOR",
-        tiendaId: (token.tiendaId as string | null) ?? null,
-      },
-    }),
-  },
-} satisfies NextAuthConfig;
+  ];
+}

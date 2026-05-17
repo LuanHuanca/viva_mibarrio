@@ -1,8 +1,9 @@
 // VIVA Barrio — esquema MVP (PostgreSQL + Prisma)
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "library"
 }
 
 datasource db {

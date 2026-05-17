@@ -1,76 +1,74 @@
-import Link from "next/link";
+import Image from "next/image";
 
 import { auth } from "~/server/auth";
+import { ButtonLink } from "~/components/ui/button";
+import { VivaLogo } from "~/components/ui/viva-logo";
+import { graphics } from "~/lib/graphics";
 
 export default async function HomePage() {
   const session = await auth();
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="w-full max-w-lg rounded-3xl border border-emerald-200 bg-white/90 p-10 shadow-xl shadow-emerald-100/50">
-        <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">
-          VIVA App · Módulo Barrio
-        </p>
-        <h1 className="mt-2 text-4xl font-extrabold text-emerald-950">
-          VIVA Barrio
-        </h1>
-        <p className="mt-4 text-emerald-800">
-          Compra en tu kiosko de confianza con descuento, apoya a la caserita y
-          ayúdala a ganar su internet gratis.
-        </p>
+    <main className="relative mx-auto flex min-h-[100dvh] max-w-lg flex-col overflow-hidden bg-[#003d28]">
+      <section className="relative min-h-0 flex-1">
+        <Image
+          src="/login_background.png"
+          alt=""
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="(max-width: 512px) 100vw, 512px"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#007a4d]/85 via-[#006b44]/70 to-[#003d28]" />
 
-        <div className="mt-8 flex flex-col gap-3">
-          {session ? (
-            <>
-              <p className="text-sm text-emerald-700">
-                Hola, {session.user.name ?? session.user.email}
-              </p>
-              <Link
-                href={
-                  session.user.role === "CASERITA"
-                    ? "/caserita/dashboard"
-                    : "/comprador/mapa"
-                }
-                className="rounded-xl bg-emerald-600 px-6 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
-              >
-                Ir a mi panel
-              </Link>
-              <Link
-                href="/api/auth/signout"
-                className="rounded-xl border border-emerald-300 px-6 py-3 text-center text-emerald-800"
-              >
-                Cerrar sesión
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="rounded-xl bg-emerald-600 px-6 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
-              >
+        <div className="relative z-10 flex h-full flex-col items-center px-6 pt-12 text-center">
+          <VivaLogo size="xl" className="drop-shadow-md" />
+          <p className="mt-2 text-sm font-medium text-white/95">
+            VIVA App · Módulo Barrio
+          </p>
+          <p className="mt-2 max-w-xs text-sm text-white/85">
+            Conectamos tu barrio con beneficios reales
+          </p>
+        </div>
+      </section>
+
+      <section className="relative shrink-0 bg-[#003d28] px-6 pb-8 pt-6">
+        <div
+          className="pointer-events-none absolute inset-x-0 -top-12 h-24 bg-gradient-to-b from-transparent to-[#003d28]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-28 opacity-20"
+          aria-hidden
+        >
+          <Image
+            src={graphics.decor.elemento1}
+            alt=""
+            fill
+            className="object-cover object-bottom"
+          />
+        </div>
+
+        <div className="relative z-10 space-y-3">
+          {session ?
+            <ButtonLink href="/api/auth/signout" variant="white" fullWidth>
+              Cerrar sesión
+            </ButtonLink>
+          : <>
+              <ButtonLink href="/login" fullWidth>
                 Iniciar sesión
-              </Link>
-              <Link
-                href="/registro"
-                className="rounded-xl border border-emerald-400 px-6 py-3 text-center font-semibold text-emerald-800"
-              >
-                Crear cuenta
-              </Link>
+              </ButtonLink>
+              <ButtonLink href="/registro" variant="white" fullWidth>
+                Registrarse
+              </ButtonLink>
             </>
-          )}
+          }
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-4 text-sm">
-          <div className="rounded-xl bg-emerald-50 p-4">
-            <p className="font-bold text-emerald-900">Comprador</p>
-            <p className="mt-1 text-emerald-700">Mapa, ofertas y pago con QR</p>
-          </div>
-          <div className="rounded-xl bg-teal-50 p-4">
-            <p className="font-bold text-teal-900">Caserita</p>
-            <p className="mt-1 text-teal-700">Cobros, meta WiFi y reportes</p>
-          </div>
-        </div>
-      </div>
+        <p className="relative z-10 mt-5 text-center text-xs text-white/55">
+          Hecho en Cochabamba, para Bolivia
+        </p>
+      </section>
     </main>
   );
 }

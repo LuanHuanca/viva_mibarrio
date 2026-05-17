@@ -1,7 +1,9 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-import { auth } from "~/server/auth";
+import { authConfig } from "~/server/auth/auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 const PUBLIC_PATHS = ["/", "/login", "/registro"];
 
@@ -11,7 +13,8 @@ export default auth((req) => {
 
   const isPublic =
     PUBLIC_PATHS.some((p) => pathname === p) ||
-    pathname.startsWith("/api/auth");
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/trpc");
 
   if (isPublic) return NextResponse.next();
 

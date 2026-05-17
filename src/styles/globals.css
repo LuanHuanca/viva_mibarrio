@@ -1,6 +1,42 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-viva-dark: #004d2c;
+  --color-viva-primary: #007a4d;
+  --color-viva-accent: #76b900;
+  --color-viva-light: #ecfdf5;
+  --color-viva-soft: #e8f5ec;
+}
+
+@utility bg-viva-soft {
+  background-color: var(--color-viva-soft);
+}
+
+/** Tarjeta blanca única sobre fondo verde claro */
+@utility viva-card {
+  border-radius: 1rem;
+  border-width: 1px;
+  border-color: rgb(243 244 246);
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px 0 rgb(0 61 40 / 0.06);
+}
+
+body {
+  @apply bg-viva-soft text-gray-900 antialiased;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  font-family: inherit;
+}
+
+.viva-marker {
+  background: #007a4d;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
 }

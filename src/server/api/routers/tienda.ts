@@ -6,7 +6,6 @@ import { env } from "~/env";
 import {
   caseritaProcedure,
   createTRPCRouter,
-  protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 
@@ -39,9 +38,11 @@ export const tiendaRouter = createTRPCRouter({
         lat: t.lat,
         lng: t.lng,
         zonaBarrio: t.zonaBarrio,
+        whatsappDuenia: t.whatsappDuenia,
         ofertas: t.ofertas.map((o) => ({
           id: o.id,
           nombreProducto: o.nombreProducto,
+          precioOriginal: o.precioOriginal,
           precioDescuento: o.precioDescuento,
         })),
       }));
@@ -98,17 +99,12 @@ export const tiendaRouter = createTRPCRouter({
       });
     }),
 
-  /** Progreso meta WiFi (dashboard caserita). */
-  progreso: protectedProcedure.query(async ({ ctx }) => {
-    const tienda = await ctx.db.kioskoTienda.findFirst({
+  /** Progreso meta WiFi (dashboard caserita). Null si aún no hay tienda. */
+  progreso: caseritaProcedure.query(async ({ ctx }) => {
+    const tienda = await ctx.db.kioskoTienda.findUnique({
       where: { ownerId: ctx.session.user.id },
     });
-    if (!tienda) {
-      throw new TRPCError({
-        code: "PRECONDITION_FAILED",
-        message: "Registra tu tienda en onboarding",
-      });
-    }
+    if (!tienda) return null;
 
     const porcentaje = Math.min(
       100,

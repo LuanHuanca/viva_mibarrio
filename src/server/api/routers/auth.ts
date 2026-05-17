@@ -2,12 +2,13 @@ import { hash } from "bcryptjs";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { UserRole } from "../../../../generated/prisma";
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+
+const rolRegistroSchema = z.enum(["COMPRADOR", "CASERITA"]);
 
 export const authRouter = createTRPCRouter({
   register: publicProcedure
@@ -16,7 +17,7 @@ export const authRouter = createTRPCRouter({
         name: z.string().min(2),
         email: z.string().email(),
         password: z.string().min(6),
-        role: z.enum([UserRole.COMPRADOR, UserRole.CASERITA]),
+        role: rolRegistroSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {

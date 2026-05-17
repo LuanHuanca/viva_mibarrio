@@ -146,11 +146,42 @@ export const transaccionRouter = createTRPCRouter({
       };
     }),
 
+  misCompras: compradorProcedure.query(async ({ ctx }) => {
+    return ctx.db.cuponTransaccion.findMany({
+      where: { usuarioId: ctx.session.user.id },
+      include: {
+        tienda: { select: { nombreTienda: true, zonaBarrio: true } },
+        oferta: { select: { nombreProducto: true, precioDescuento: true } },
+      },
+      orderBy: { fechaRegistro: "desc" },
+      take: 50,
+    });
+  }),
+
+  misVentas: caseritaProcedure.query(async ({ ctx }) => {
+    const tienda = await ctx.db.kioskoTienda.findFirst({
+      where: { ownerId: ctx.session.user.id },
+    });
+    if (!tienda) return [];
+
+    return ctx.db.cuponTransaccion.findMany({
+      where: { tiendaId: tienda.id },
+      include: {
+        usuario: { select: { name: true, email: true } },
+        oferta: {
+          select: { nombreProducto: true, precioDescuento: true },
+        },
+      },
+      orderBy: { fechaRegistro: "desc" },
+      take: 50,
+    });
+  }),
+
   ciclo: caseritaProcedure.query(async ({ ctx }) => {
     const tienda = await ctx.db.kioskoTienda.findFirst({
       where: { ownerId: ctx.session.user.id },
     });
-    if (!tienda) throw new TRPCError({ code: "NOT_FOUND" });
+    if (!tienda) return null;
 
     return {
       ciclo_id: tienda.cicloId,

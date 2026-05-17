@@ -269,19 +269,30 @@ export function IconHeart({ className = "text-[#007a4d]", size = 14 }: IconProps
   );
 }
 
-export type NavIconName = "map" | "tag" | "bag" | "user" | "home" | "chart";
+export type NavIconName =
+  | "map"
+  | "tag"
+  | "bag"
+  | "user"
+  | "home"
+  | "chart"
+  | "qr";
 
 export function NavIcon({
   name,
   active,
   size = 22,
+  className,
 }: {
   name: NavIconName;
   active: boolean;
   size?: number;
+  className?: string;
 }) {
-  const color = active ? "#007a4d" : "#9ca3af";
-  const props = { className: "", size };
+  const color =
+    className?.includes("text-white") ? "#ffffff"
+    : active ? "#007a4d"
+    : "#9ca3af";
 
   switch (name) {
     case "map":
@@ -308,5 +319,7 @@ export function NavIcon({
           <path d="M3 6h18" stroke={color} />
         </Svg>
       );
+    case "qr":
+      return <IconQrScan className={className ?? color} size={size} />;
   }
 }

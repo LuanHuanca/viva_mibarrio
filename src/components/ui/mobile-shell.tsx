@@ -8,7 +8,12 @@ import type { ReactNode } from "react";
 
 import { NavIcon, type NavIconName } from "~/components/ui/icons";
 
-type NavItem = { href: string; label: string; icon: NavIconName };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: NavIconName;
+  primary?: boolean;
+};
 
 const compradorNav: NavItem[] = [
   { href: "/comprador/mapa", label: "Mapa", icon: "map" },
@@ -20,6 +25,7 @@ const compradorNav: NavItem[] = [
 const caseritaNav: NavItem[] = [
   { href: "/caserita/dashboard", label: "Inicio", icon: "home" },
   { href: "/caserita/ofertas", label: "Ofertas", icon: "tag" },
+  { href: "/caserita/cobrar", label: "Cobrar", icon: "qr", primary: true },
   { href: "/caserita/ventas", label: "Ventas", icon: "chart" },
   { href: "/caserita/perfil", label: "Perfil", icon: "user" },
 ];
@@ -33,11 +39,35 @@ function BottomNav({ items }: { items: NavItem[] }) {
         {items.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
+          if (item.primary) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="-mt-5 flex min-w-[4.5rem] flex-col items-center gap-0.5"
+              >
+                <span
+                  className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg ${
+                    active ?
+                      "bg-[#004d2c] ring-4 ring-[#007a4d]/25"
+                    : "bg-[#007a4d]"
+                  }`}
+                >
+                  <NavIcon name={item.icon} active className="text-white" />
+                </span>
+                <span
+                  className={`text-[10px] font-bold ${active ? "text-[#007a4d]" : "text-[#004d2c]"}`}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          }
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex min-w-[4.25rem] flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 transition-all duration-200 ${
+              className={`relative flex min-w-[3.5rem] flex-col items-center gap-0.5 rounded-xl px-1.5 py-1.5 transition-all duration-200 ${
                 active ?
                   "bg-[#007a4d]/12 text-[#007a4d]"
                 : "text-gray-400 hover:text-gray-600"
@@ -70,10 +100,13 @@ export function CompradorShell({ children }: { children: ReactNode }) {
 }
 
 export function CaseritaShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const hideNav = pathname.startsWith("/caserita/cobrar");
+
   return (
     <div className="mx-auto min-h-screen max-w-lg bg-viva-soft pb-24">
       {children}
-      <BottomNav items={caseritaNav} />
+      {!hideNav && <BottomNav items={caseritaNav} />}
     </div>
   );
 }

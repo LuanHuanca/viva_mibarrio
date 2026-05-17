@@ -75,7 +75,12 @@ export default function CaseritaPerfilPage() {
           />
         )}
         <MenuRow
-          href="/comprador/ayuda"
+          href="/caserita/asistente"
+          icon={<IconHelp size={20} />}
+          label="Asistente WhatsApp"
+        />
+        <MenuRow
+          href="/caserita/ayuda"
           icon={<IconHelp size={20} />}
           label="Ayuda y soporte"
         />

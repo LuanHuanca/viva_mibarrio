@@ -1,3 +1,4 @@
+import { asistenteRouter } from "~/server/api/routers/asistente";
 import { authRouter } from "~/server/api/routers/auth";
 import { ofertaRouter } from "~/server/api/routers/oferta";
 import { tiendaRouter } from "~/server/api/routers/tienda";
@@ -9,6 +10,7 @@ export const appRouter = createTRPCRouter({
   tienda: tiendaRouter,
   oferta: ofertaRouter,
   transaccion: transaccionRouter,
+  asistente: asistenteRouter,
 });
 
 export type AppRouter = typeof appRouter;

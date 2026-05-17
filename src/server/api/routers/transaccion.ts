@@ -3,7 +3,6 @@ import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { getCicloId } from "~/lib/ciclo";
 import { createQrToken, verifyQrToken } from "~/lib/qr-token";
 import {
   caseritaProcedure,

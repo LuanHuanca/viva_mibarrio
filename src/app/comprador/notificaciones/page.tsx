@@ -1,8 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-
 import { ScreenHeader } from "~/components/ui/screen-header";
 import { IconBell, IconSettings } from "~/components/ui/icons";
 import { graphics } from "~/lib/graphics";

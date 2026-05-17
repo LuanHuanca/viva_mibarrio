@@ -1,7 +1,7 @@
 "use client";
 
 import { getSession, signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
@@ -15,7 +15,6 @@ function safeCallbackUrl(raw: string | null): string {
 }
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
   const registered = searchParams.get("registered") === "1";
@@ -56,8 +55,7 @@ export function LoginForm() {
         callbackUrl
       : "/comprador/mapa";
 
-    router.push(destination);
-    router.refresh();
+    window.location.assign(destination);
   }
 
   return (

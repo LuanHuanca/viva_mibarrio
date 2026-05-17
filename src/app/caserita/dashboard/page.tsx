@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 
 import Image from "next/image";
 
+import { ProgressBar } from "~/components/progress-bar";
 import { AppHeader } from "~/components/ui/app-header";
 import { ProductImage } from "~/components/ui/product-image";
 import { ButtonLink } from "~/components/ui/button";
@@ -36,11 +37,6 @@ export default function DashboardCaseritaPage() {
   const faltan = Math.max(0, tienda.metaUsuarios - tienda.clientesAtendidosCiclo);
   const nombre = session?.user?.name?.split(" ")[0] ?? "Caserita";
   const cicloLabel = formatCiclo(tienda.cicloId);
-  const pct = Math.min(
-    100,
-    Math.round((tienda.clientesAtendidosCiclo / tienda.metaUsuarios) * 100),
-  );
-
   return (
     <div className="bg-viva-soft pb-6">
       <AppHeader
@@ -77,10 +73,10 @@ export default function DashboardCaseritaPage() {
           </div>
           <IconWifi size={28} className="text-[#007a4d]" />
         </div>
-        <div className="mt-3 h-3 overflow-hidden rounded-full bg-gray-100">
-          <div
-            className="h-full rounded-full bg-[#76b900] transition-all"
-            style={{ width: `${pct}%` }}
+        <div className="mt-3">
+          <ProgressBar
+            actual={tienda.clientesAtendidosCiclo}
+            meta={tienda.metaUsuarios}
           />
         </div>
         {faltan > 0 ?
@@ -100,6 +96,14 @@ export default function DashboardCaseritaPage() {
       <div className="mt-6 space-y-3 px-4">
         <ButtonLink href="/caserita/cobrar" fullWidth className="!flex items-center justify-center gap-2">
           <IconQrScan size={20} /> Cobrar ahora (QR dinámico)
+        </ButtonLink>
+        <ButtonLink
+          href="/caserita/asistente"
+          variant="secondary"
+          fullWidth
+          className="!flex items-center justify-center gap-2 border-[#25D366] text-[#128C7E]"
+        >
+          Asistente WhatsApp
         </ButtonLink>
         <div className="grid grid-cols-2 gap-3">
           <Link

@@ -14,7 +14,8 @@ export default auth((req) => {
   const isPublic =
     PUBLIC_PATHS.some((p) => pathname === p) ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/trpc");
+    pathname.startsWith("/api/trpc") ||
+    pathname.startsWith("/api/whatsapp");
 
   if (isPublic) return NextResponse.next();
 

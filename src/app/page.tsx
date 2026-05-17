@@ -5,8 +5,17 @@ import { ButtonLink } from "~/components/ui/button";
 import { VivaLogo } from "~/components/ui/viva-logo";
 import { graphics } from "~/lib/graphics";
 
+import { redirect } from "next/navigation";
+
 export default async function HomePage() {
   const session = await auth();
+
+  if (session?.user) {
+    if (session.user.role === "CASERITA") {
+      redirect("/caserita/dashboard");
+    }
+    redirect("/comprador/mapa");
+  }
 
   return (
     <main className="relative mx-auto flex min-h-[100dvh] max-w-lg flex-col overflow-hidden bg-[#003d28]">
@@ -58,8 +67,11 @@ export default async function HomePage() {
               <ButtonLink href="/login" fullWidth>
                 Iniciar sesión
               </ButtonLink>
-              <ButtonLink href="/registro" variant="white" fullWidth>
-                Registrarse
+              <ButtonLink href="/registro?rol=CASERITA" variant="white" fullWidth>
+                Registrarse como caserita
+              </ButtonLink>
+              <ButtonLink href="/registro" variant="ghost" fullWidth className="!text-white/90">
+                Registrarse como comprador
               </ButtonLink>
             </>
           }

@@ -37,18 +37,20 @@ export function QrScanner({
       .start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 220, height: 220 } },
-        async (decoded) => {
+        (decoded) => {
           if (stoppedRef.current) return;
           stoppedRef.current = true;
           onScanRef.current(decoded);
           if (runningRef.current) {
-            try {
-              await scanner.stop();
-              await scanner.clear();
-            } catch {
-              /* scanner ya detenido */
-            }
-            runningRef.current = false;
+            void scanner
+              .stop()
+              .then(() => {
+                scanner.clear();
+              })
+              .catch(() => undefined)
+              .finally(() => {
+                runningRef.current = false;
+              });
           }
         },
         () => undefined,

@@ -15,6 +15,13 @@ const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.tiendaId = user.tiendaId ?? null;
       }
+      if (token.sub) {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        if (dbUser) token.role = dbUser.role;
+      }
       if (token.sub && token.role === "CASERITA") {
         const tienda = await db.kioskoTienda.findUnique({
           where: { ownerId: token.sub },

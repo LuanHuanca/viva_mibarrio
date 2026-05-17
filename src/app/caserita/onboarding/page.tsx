@@ -37,6 +37,10 @@ export default function OnboardingCaseritaPage() {
       alert("Captura la ubicación GPS de tu tienda");
       return;
     }
+    if (!whatsapp.trim()) {
+      alert("Ingresa tu WhatsApp para activar el asistente de reportes");
+      return;
+    }
 
     await create.mutateAsync({
       nombreTienda,
@@ -77,11 +81,15 @@ export default function OnboardingCaseritaPage() {
           placeholder="Villa Corona"
         />
         <Input
-          label="WhatsApp (opcional)"
+          label="WhatsApp (para reportes del asistente)"
+          required
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
           placeholder="70707070"
         />
+        <p className="text-xs text-gray-500">
+          Con este número podrás recibir reportes de ventas y meta por WhatsApp.
+        </p>
 
         <div>
           <p className="text-sm font-semibold text-[#007a4d]">Ubicación</p>

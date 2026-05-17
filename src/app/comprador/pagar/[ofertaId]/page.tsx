@@ -10,7 +10,7 @@ import { QrScanner } from "~/components/comprador/qr-scanner";
 import { graphics } from "~/lib/graphics";
 import { Button } from "~/components/ui/button";
 import { CircularTimer } from "~/components/ui/circular-timer";
-import { IconAlert, IconBack, IconCheck } from "~/components/ui/icons";
+import { IconBack } from "~/components/ui/icons";
 import { VivaLogo } from "~/components/ui/viva-logo";
 import { api } from "~/trpc/react";
 

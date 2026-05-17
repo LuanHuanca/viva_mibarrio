@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -35,7 +36,18 @@ export default function RegistroPage() {
     e.preventDefault();
     try {
       await register.mutateAsync({ name, email, password, role });
-      router.push(`/login?registered=1&email=${encodeURIComponent(email)}`);
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (res?.error) {
+        router.push(`/login?registered=1&email=${encodeURIComponent(email)}`);
+        return;
+      }
+      const dest =
+        role === "CASERITA" ? "/caserita/onboarding" : "/comprador/mapa";
+      window.location.assign(dest);
     } catch {
       /* error below */
     }
